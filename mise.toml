@@ -1,0 +1,11 @@
+[tools]
+node = "24"
+
+[tasks.lint]
+run = "./make.sh lint"
+
+[tasks.format]
+run = "./make.sh format"
+
+[tasks.test]
+run = "node --test tests/*.test.mjs"

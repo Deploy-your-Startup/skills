@@ -1,0 +1,4 @@
+interface:
+  display_name: "Factory in Maestri"
+  short_description: "Set up a reusable Startup Factory portfolio canvas"
+  default_prompt: "Use $factory-maestri to set up my Factory portfolio workspace in Maestri."
