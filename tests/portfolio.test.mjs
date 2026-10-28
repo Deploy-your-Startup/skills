@@ -36,6 +36,7 @@ test("GIVEN a populated Factory WHEN generating THEN every registry entry appear
   - name: alpha
     repo: https://example.invalid/private.git
     deployed: true
+    url: alpha.example
     kubectl_context: private-context
   - name: beta
     repo: https://example.invalid/beta.git
@@ -48,8 +49,11 @@ tooling:
     const result = run(root);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /2 startups · 1 tooling repositories/);
-    assert.match(result.stdout, /alpha \| Yes \| projects\/startups\/alpha/);
-    assert.match(result.stdout, /beta \| No \| projects\/startups\/beta/);
+    assert.match(
+      result.stdout,
+      /alpha \| \[Open website\]\(https:\/\/alpha.example\) \| Yes/,
+    );
+    assert.match(result.stdout, /beta \| No website configured \| No/);
     assert.match(result.stdout, /projects\/tooling\/cli/);
     assert.doesNotMatch(result.stdout, /private-context|example.invalid/);
     assert.equal(readFileSync(join(root, "projects.yaml"), "utf8"), yaml);
@@ -100,3 +104,58 @@ test("GIVEN no Factory argument WHEN invoking THEN print usage and fail", () => 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Usage:/);
 });
+
+test("GIVEN websites and an undeployed startup WHEN planning portals THEN emit desktop and mobile views only for configured URLs", () => {
+  const root = factory(
+    "projects:\n  - name: alpha\n    repo: example\n    url: alpha.example\n  - name: beta\n    repo: example\ntooling: []\n",
+  );
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [helper, root, "--portals-json"],
+      { encoding: "utf8" },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), [
+      {
+        name: "alpha Desktop",
+        url: "https://alpha.example",
+        width: 1440,
+        height: 900,
+        userAgent: "desktop",
+      },
+      {
+        name: "alpha Mobile",
+        url: "https://alpha.example",
+        width: 390,
+        height: 844,
+        userAgent: "ios",
+      },
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+for (const domain of [
+  "javascript:alert(1)",
+  "https://alpha.example",
+  "user:secret@alpha.example",
+  "alpha.example/path",
+  "alpha.example)bad",
+]) {
+  test(`GIVEN invalid hostname ${domain} WHEN generating THEN reject it without publishing a link`, () => {
+    const root = factory(
+      `projects:\n  - name: alpha\n    repo: example\n    url: "${domain}"\ntooling: []\n`,
+    );
+    try {
+      const result = run(root);
+      assert.equal(result.status, 1);
+      assert.equal(result.stdout, "");
+      assert.match(result.stderr, /Invalid website hostname/);
+      assert.doesNotMatch(result.stderr, /secret@/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}

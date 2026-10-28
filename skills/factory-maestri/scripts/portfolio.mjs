@@ -4,9 +4,13 @@ import { existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const args = process.argv.slice(2);
-if (args.length !== 1 || args[0] === "--help") {
+if (
+  ![1, 2].includes(args.length) ||
+  (args.length === 2 && args[1] !== "--portals-json") ||
+  args[0] === "--help"
+) {
   console[args[0] === "--help" ? "log" : "error"](
-    "Usage: node portfolio.mjs <factory-root>\nPrint a local portfolio snapshot as Markdown; writes no files.",
+    "Usage: node portfolio.mjs <factory-root> [--portals-json]\nPrint a linked portfolio or desktop/mobile portal plan; writes no files.",
   );
   process.exit(args[0] === "--help" ? 0 : 1);
 }
@@ -29,6 +33,60 @@ try {
       .map((row) => row.split("\t"));
   const startups = read("startups");
   const tooling = read("tooling");
+  let websites;
+  try {
+    websites = new Map(read("websites"));
+  } catch {
+    throw new Error(
+      "Website registry interface unavailable. Update the Factory registry.sh to a version supporting websites.",
+    );
+  }
+  const website = (name) => {
+    const domain = websites.get(name);
+    if (!domain) return null;
+    // The Factory registry stores bare public hostnames, never credentials or paths.
+    if (
+      !/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i.test(
+        domain,
+      )
+    ) {
+      throw new Error(
+        "Invalid website hostname in registry. Use a bare public domain without scheme, path or credentials.",
+      );
+    }
+    return `https://${domain.toLowerCase()}`;
+  };
+  const urls = new Map(startups.map(([name]) => [name, website(name)]));
+  if (args[1] === "--portals-json") {
+    console.log(
+      JSON.stringify(
+        startups.flatMap(([name]) => {
+          const url = urls.get(name);
+          return url
+            ? [
+                {
+                  name: `${name} Desktop`,
+                  url,
+                  width: 1440,
+                  height: 900,
+                  userAgent: "desktop",
+                },
+                {
+                  name: `${name} Mobile`,
+                  url,
+                  width: 390,
+                  height: 844,
+                  userAgent: "ios",
+                },
+              ]
+            : [];
+        }),
+        null,
+        2,
+      ),
+    );
+    process.exit(0);
+  }
   const cell = (value) =>
     value
       .replaceAll("&", "&amp;")
@@ -43,11 +101,11 @@ try {
       "",
       `${startups.length} startups · ${tooling.length} tooling repositories`,
       "",
-      "| Startup | Deployment recorded | Local repository |",
-      "| --- | --- | --- |",
+      "| Startup | Website | Deployment recorded | Local repository |",
+      "| --- | --- | --- | --- |",
       ...startups.map(
         ([name, , deployed]) =>
-          `| ${cell(name)} | ${deployed === "true" ? "Yes" : "No"} | projects/startups/${cell(name)} |`,
+          `| ${cell(name)} | ${urls.get(name) ? `[Open website](${urls.get(name)})` : "No website configured"} | ${deployed === "true" ? "Yes" : "No"} | projects/startups/${cell(name)} |`,
       ),
       "",
       "## Tooling",
@@ -61,7 +119,9 @@ try {
 } catch (error) {
   // Do not echo parser diagnostics that might contain private registry values.
   console.error(
-    error.message.startsWith("Not a Factory:")
+    /^(Not a Factory:|Website registry interface|Invalid website hostname)/.test(
+      error.message,
+    )
       ? error.message
       : "Cannot read the Factory registry. Check scripts/registry.sh, YAML validity and yq installation.",
   );

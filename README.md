@@ -41,9 +41,9 @@ mise run test
 
 Tests run the helper against the real Factory registry reader with neutral
 populated, empty, missing and malformed registries. They check the snapshot,
-read-only behavior and failure behavior. The fixture reader is from the MIT
+read-only behavior and failure behavior. The fixture reader is based on the MIT
 licensed Factory template at revision
-`1b234110588fbc79fc244c57653b66bcd1bed7dd`.
+`1b234110588fbc79fc244c57653b66bcd1bed7dd`, with the new `websites` interface.
 
 Native-app checks are separate: confirm the workspace path, inspect the saved
 Partitura's terminal/notes/connections, find it in the library, and request an
@@ -54,3 +54,13 @@ No automated native-app or paid-provider E2E is claimed.
 Keep helpers and references within each skill so installation copies everything
 it needs. Submit changes through pull requests, with lint/test evidence and
 remaining manual checks. Never include personal registry data or exported canvases.
+
+Website previews use the Factory registry reader’s `websites` command. The Maestri
+helper adds clickable HTTPS links and plans a desktop (1440×900) and mobile
+(390×844) portal for every configured website. Startups without a URL remain
+listed. Existing factories need the updated registry reader before this feature;
+apply a reviewed Factory template update rather than replacing owner scripts.
+
+The skill requires a two-column gallery of desktop/mobile pairs, a separate
+control area, readable startup labels and domain links, and a visual layout
+check before saving the Partitura. Portal creation alone is not completion.

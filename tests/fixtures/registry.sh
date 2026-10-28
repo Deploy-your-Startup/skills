@@ -12,6 +12,7 @@ set -euo pipefail
 #
 # Commands:
 #   startups          name <TAB> repo <TAB> deployed <TAB> kubectl_context
+#   websites          name <TAB> url (all startups, empty when unset)
 #   tooling           name <TAB> repo
 #   deployed          name        (startups with `deployed: true`)
 #   evidence-repo     OWNER/NAME of the private PR review evidence repository
@@ -94,6 +95,9 @@ check_registry() {
 }
 
 case "${1:-}" in
+  websites)
+    yq '.projects[] | [.name, (.url // "")] | @tsv' "$projects_yaml"
+    ;;
   startups)
     yq '.projects[] | [.name, .repo, (.deployed // false), (.kubectl_context // "")] | @tsv' "$projects_yaml"
     ;;

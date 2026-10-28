@@ -13,7 +13,7 @@ owner data; this skill contains no portfolio defaults.
 
 Find the intended Factory root with projects.yaml and scripts/registry.sh.
 Review the registry before executing its local script. Use Node.js 24+ and the
-Factory's installed yq; generate the overview with the bundled helper:
+Factory's installed yq and a registry.sh supporting the `websites` command; generate the overview with the bundled helper:
 
 ```sh
 node <installed-skill>/scripts/portfolio.mjs <factory-root>
@@ -60,12 +60,73 @@ A branch or floor of the hub does not isolate the separate repositories under
 projects/. Before application edits, inspect that repository's status and rules
 and choose appropriate isolation. Do not create branches just to view a portfolio.
 
+## Website previews
+
+For each configured website, add a named Desktop portal (1440×900) and a Mobile
+portal (390×844, iOS user agent), arranged side by side per startup. Keep startups
+without URLs in the linked overview as “No website configured”; never infer URLs
+from repository names. The helper includes HTTPS links and can print a structured
+plan with `--portals-json`. An older registry interface fails with an update
+instruction rather than silently omitting websites. Update the Factory through
+its reviewed template update process; do not silently replace owner scripts.
+
+Use the installed Maestri portal skill/help for supported commands. In a real
+Maestri terminal context, `maestri portal create URL "Name" --size 390x844` creates
+one view; `maestri portal ua "Name" ios` sets mobile emulation. Check `maestri list`
+first and reuse matching portals. Pass names/URLs as distinct process arguments,
+never interpolate registry values into shell code. Outside Maestri, use the UI;
+do not fabricate terminal identity or enable a network API just for setup.
+
+### Required gallery layout
+
+Treat layout as part of setup, not optional polish. Use registry order and a
+repeatable two-column gallery of startup pairs. Within each pair put Desktop on
+the left and Mobile on the right, with their top edges aligned. Use roughly
+120 canvas units between devices, 360 between startup pairs and 240 between
+rows (in addition to the full card height, including browser chrome). Never
+stack portals at the default creation position. Keep the agent and notes in a
+separate control area to the left, with at least 320 units of clear space before
+the gallery. Grow the canvas vertically as the portfolio grows.
+
+Group each desktop/mobile pair with the native Group command (Cmd+G on macOS)
+and name it with an ordinal and startup name. Native group headings stay readable
+at overview zoom; verify the group contains only its two intended portals.
+Each pair needs a readable startup title and a clearly accessible website link. Keep
+labels large enough to read at the overview zoom. Use concise notes for the
+control area; expand the portfolio note so its website links are visible instead
+of leaving a tiny scrolling card. Leave the initial view centered on the gallery
+at the largest zoom that fits the complete overview. The owner can zoom into a
+pair to read page text at normal scale; do not promise that every website's body
+text can be read simultaneously in an overview.
+
+Use supported native layout controls. The portal CLI creates and resizes views
+but does not place them in this gallery. If positions are not exposed by the
+installed CLI, arrange them through the UI. “Tidy” can separate overlaps but may
+sort by dimensions: it does not preserve desktop/mobile pairs. After every move,
+inspect the new state before reusing coordinates; canvas layout and zoom can
+change. Do not report a finished gallery if UI access is unavailable.
+
+Keep the gallery free of connection lines by default. Connect a preview to the
+chosen agent only for a concrete browsing task, and remove temporary setup-agent
+connections once creation is complete. Keep the persistent agent/brief connections
+inside the control area. Confirm each portal's actual viewport and loading result;
+distinguish a responsive preview from a full-page screenshot. Report unavailable
+websites without bypassing TLS errors or changing production.
+
+Before saving, visually inspect the whole canvas and one pair at readable zoom:
+all registered websites have exactly two views, no overlaps, no clipped labels,
+consistent alignment and spacing, the domain links are visible, and notes and
+terminals do not cover previews. Save only after these checks pass. On refresh,
+reuse existing pairs, preserve deliberate owner placement, and place new pairs
+in the next free gallery slot. Never create a second stack of duplicate portals.
+
 ## Save and verify
 
-Save the terminal, both notes and both connections as a workspace-scoped
+Exclude temporary setup terminals and commands from the reusable template.
+Save the terminal, both notes, website portals, groups and their connections as a workspace-scoped
 Partitura named **Factory Portfolio**, unless the owner chooses another name.
 Inspect the saved selection's Details: one terminal with its intended startup
-command, two notes and two connections. Right-clicking a terminal can narrow a
+command, two notes, two website portals per configured URL and the intended connections. Right-clicking a terminal can narrow a
 multi-selection; verify the actual saved contents. Do not duplicate an existing
 Partitura on retry; update it when the user requested refresh, otherwise reuse it.
 
