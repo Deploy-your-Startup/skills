@@ -18,7 +18,8 @@ npx --yes skills@1.7.4 add Deploy-your-Startup/skills --skill factory-maestri -a
 This installs into the project, not globally. Start a new agent session and ask:
 “Use factory-maestri to set up this Factory in Maestri.” Add only the agents you
 use with `-a`. To review the feature before merge, replace the source with the
-local checkout path or `https://github.com/Deploy-your-Startup/skills/tree/feat/maestri-factory`.
+local checkout path after checking out the pull request branch. GitHub tree URLs
+with slash-containing branch names are not parsed correctly by skills@1.7.4.
 
 Installation adds instructions and a helper; it does not install Maestri, sign
 into Claude, launch an agent or alter your canvas. Invoke the skill for setup.
